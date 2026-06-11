@@ -1,10 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
-import { getTeamMembers, getMemberBalances } from "@/lib/queries";
+import { getTeamMembers, getMemberBalances, getCurrentMember } from "@/lib/queries";
 import { CompensatoryForm } from "./compensatory-form";
 import { CarryoverButton } from "./carryover-button";
+import { redirect } from "next/navigation";
 
 export default async function AdminPage() {
   const supabase = await createClient();
+  const currentMember = await getCurrentMember(supabase);
+  if (!currentMember?.is_admin) redirect("/calendario");
+
   const year = new Date().getFullYear();
   const [members, balances] = await Promise.all([
     getTeamMembers(supabase),

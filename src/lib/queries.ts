@@ -92,6 +92,17 @@ export async function updateCompensatoryEarned(
   if (error) throw error;
 }
 
+export async function getCurrentMember(supabase: SupabaseClient) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user?.email) return null;
+  const { data } = await supabase
+    .from("team_members")
+    .select("*")
+    .eq("email", user.email)
+    .single();
+  return data;
+}
+
 export async function getMemberEntries(
   supabase: SupabaseClient,
   memberId: string,

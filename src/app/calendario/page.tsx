@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getTeamMembers, getMonthEntries, getBankHolidays } from "@/lib/queries";
+import { getTeamMembers, getMonthEntries, getBankHolidays, getCurrentMember } from "@/lib/queries";
 import { TeamCalendar } from "@/components/calendar/team-calendar";
 import { startOfMonth, endOfMonth, format } from "date-fns";
 
@@ -19,10 +19,11 @@ export default async function CalendarioPage({
   const startStr = format(monthStart, "yyyy-MM-dd");
   const endStr = format(monthEnd, "yyyy-MM-dd");
 
-  const [members, entries, bankHolidays] = await Promise.all([
+  const [members, entries, bankHolidays, currentMember] = await Promise.all([
     getTeamMembers(supabase),
     getMonthEntries(supabase, startStr, endStr),
     getBankHolidays(supabase, startStr, endStr),
+    getCurrentMember(supabase),
   ]);
 
   return (
@@ -32,6 +33,8 @@ export default async function CalendarioPage({
       bankHolidays={bankHolidays}
       year={year}
       month={month}
+      currentMemberId={currentMember?.id}
+      isAdmin={currentMember?.is_admin}
     />
   );
 }

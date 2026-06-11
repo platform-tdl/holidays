@@ -14,9 +14,11 @@ interface Props {
   bankHolidays: BankHoliday[];
   year: number;
   month: number;
+  currentMemberId?: string;
+  isAdmin?: boolean;
 }
 
-export function TeamCalendar({ members, entries, bankHolidays, year, month }: Props) {
+export function TeamCalendar({ members, entries, bankHolidays, year, month, currentMemberId, isAdmin }: Props) {
   const router = useRouter();
   const [modal, setModal] = useState<{
     memberId: string;
@@ -116,12 +118,14 @@ export function TeamCalendar({ members, entries, bankHolidays, year, month }: Pr
 
                   if (weekend && !entry) bgClass = "bg-slate-50";
 
+                  const canEdit = isAdmin || member.id === currentMemberId;
+
                   return (
                     <td
                       key={dateStr}
-                      className={`cursor-pointer px-1 py-1 text-center ${bgClass} hover:bg-blue-50`}
+                      className={`px-1 py-1 text-center ${bgClass} ${canEdit ? "cursor-pointer hover:bg-blue-50" : ""}`}
                       onClick={() =>
-                        setModal({
+                        canEdit && setModal({
                           memberId: member.id,
                           memberName: member.name,
                           date: dateStr,

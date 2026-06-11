@@ -7,6 +7,7 @@ export interface TeamMember {
   email: string | null;
   base_days_per_year: number;
   is_active: boolean;
+  is_admin: boolean;
 }
 
 export interface YearlyBalance {
