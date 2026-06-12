@@ -8,19 +8,25 @@ export async function Nav() {
   const member = await getCurrentMember(supabase);
 
   return (
-    <nav className="border-b border-slate-200 bg-white px-6 py-3">
-      <div className="mx-auto flex max-w-7xl items-center gap-8">
-        <Link href="/" className="text-lg font-bold text-slate-900">
+    <nav className="bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 px-6 py-3 shadow-lg shadow-indigo-500/20">
+      <div className="mx-auto flex max-w-7xl items-center gap-6">
+        <Link href="/" className="flex items-center gap-2 text-lg font-bold text-white">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20 text-sm">
+            ☀️
+          </span>
           TDL Vacaciones
         </Link>
         {member && (
           <>
-            <NavLinks isAdmin={member.is_admin} slug={member.slug} />
+            <NavLinks isAdmin={member.is_admin} />
             <div className="ml-auto flex items-center gap-3">
               <Link
                 href={`/persona/${member.slug}`}
-                className="text-sm text-slate-600 hover:text-slate-900"
+                className="flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-white/25"
               >
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/30 text-xs font-bold">
+                  {member.name.charAt(0)}
+                </span>
                 {member.name}
               </Link>
               <LogoutButton />
@@ -32,7 +38,7 @@ export async function Nav() {
   );
 }
 
-function NavLinks({ isAdmin, slug }: { isAdmin: boolean; slug: string }) {
+function NavLinks({ isAdmin }: { isAdmin: boolean }) {
   const links = [
     { href: "/calendario", label: "Calendario" },
     { href: "/balance", label: "Balance" },
@@ -45,7 +51,7 @@ function NavLinks({ isAdmin, slug }: { isAdmin: boolean; slug: string }) {
         <Link
           key={href}
           href={href}
-          className="rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+          className="rounded-lg px-3 py-1.5 text-sm font-medium text-white/80 transition hover:bg-white/15 hover:text-white"
         >
           {label}
         </Link>

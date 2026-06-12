@@ -16,9 +16,24 @@ interface Props {
   month: number;
   currentMemberId?: string;
   isAdmin?: boolean;
+  remainingByMember?: Record<string, number>;
 }
 
-export function TeamCalendar({ members, entries, bankHolidays, year, month, currentMemberId, isAdmin }: Props) {
+const MEMBER_COLORS = [
+  "bg-violet-100 text-violet-700",
+  "bg-blue-100 text-blue-700",
+  "bg-emerald-100 text-emerald-700",
+  "bg-amber-100 text-amber-700",
+  "bg-pink-100 text-pink-700",
+  "bg-cyan-100 text-cyan-700",
+  "bg-rose-100 text-rose-700",
+  "bg-indigo-100 text-indigo-700",
+  "bg-teal-100 text-teal-700",
+  "bg-orange-100 text-orange-700",
+  "bg-fuchsia-100 text-fuchsia-700",
+];
+
+export function TeamCalendar({ members, entries, bankHolidays, year, month, currentMemberId, isAdmin, remainingByMember = {} }: Props) {
   const router = useRouter();
   const [modal, setModal] = useState<{
     memberId: string;
@@ -48,23 +63,23 @@ export function TeamCalendar({ members, entries, bankHolidays, year, month, curr
 
   return (
     <div>
-      <div className="mb-4 flex items-center gap-4">
-        <button onClick={handlePrev} className="rounded-md bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50">
+      <div className="mb-5 flex items-center gap-4">
+        <button onClick={handlePrev} className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 hover:shadow-md">
           ← Anterior
         </button>
-        <h2 className="text-lg font-semibold capitalize text-slate-900">
+        <h2 className="text-xl font-bold capitalize text-slate-900">
           {formatMonthYear(currentDate)}
         </h2>
-        <button onClick={handleNext} className="rounded-md bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50">
+        <button onClick={handleNext} className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 hover:shadow-md">
           Siguiente →
         </button>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white shadow-sm">
         <table className="w-full border-collapse text-xs">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50">
-              <th className="sticky left-0 z-10 bg-slate-50 px-3 py-2 text-left text-sm font-semibold text-slate-700">
+            <tr className="border-b border-slate-200 bg-slate-50/80">
+              <th className="sticky left-0 z-10 bg-slate-50/80 px-3 py-2.5 text-left text-sm font-bold text-slate-700">
                 Equipo
               </th>
               {days.map((day) => {
@@ -74,23 +89,33 @@ export function TeamCalendar({ members, entries, bankHolidays, year, month, curr
                 return (
                   <th
                     key={dateStr}
-                    className={`min-w-[32px] px-1 py-1 text-center font-medium ${
-                      holiday ? "bg-red-50 text-red-700" : weekend ? "bg-slate-100 text-slate-400" : "text-slate-600"
+                    className={`min-w-[34px] px-1 py-1.5 text-center font-medium ${
+                      holiday ? "bg-rose-50 text-rose-600" : weekend ? "bg-slate-100/60 text-slate-400" : "text-slate-500"
                     }`}
                     title={holiday?.name}
                   >
-                    <div className="text-[10px]">{getDayName(day)}</div>
-                    <div>{format(day, "d")}</div>
+                    <div className="text-[10px] uppercase tracking-wide">{getDayName(day)}</div>
+                    <div className="text-xs font-semibold">{format(day, "d")}</div>
                   </th>
                 );
               })}
             </tr>
           </thead>
           <tbody>
-            {members.map((member) => (
-              <tr key={member.id} className="border-b border-slate-100 hover:bg-slate-50/50">
-                <td className="sticky left-0 z-10 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 whitespace-nowrap">
-                  {member.name}
+            {members.map((member, i) => (
+              <tr key={member.id} className="border-b border-slate-100/80 transition hover:bg-indigo-50/30">
+                <td className="sticky left-0 z-10 bg-white px-3 py-2 whitespace-nowrap">
+                  <div className="group/member relative flex cursor-default items-center gap-2">
+                    <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${MEMBER_COLORS[i % MEMBER_COLORS.length]}`}>
+                      {member.name.charAt(0)}
+                    </span>
+                    <span className="text-sm font-medium text-slate-800">{member.name}</span>
+                    {remainingByMember[member.id] !== undefined && (
+                      <span className="pointer-events-none absolute left-full top-1/2 z-20 ml-2 -translate-y-1/2 rounded-xl bg-slate-800 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg transition-opacity group-hover/member:opacity-100 whitespace-nowrap">
+                        {remainingByMember[member.id]} días restantes
+                      </span>
+                    )}
+                  </div>
                 </td>
                 {days.map((day) => {
                   const dateStr = toDateString(day);
@@ -104,26 +129,26 @@ export function TeamCalendar({ members, entries, bankHolidays, year, month, curr
                   if (entry) {
                     const style = DAY_TYPES[entry.day_type as DayTypeKey];
                     cellContent = (
-                      <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${style.color} ${style.text}`}>
+                      <span className={`inline-flex h-6 w-6 items-center justify-center rounded-lg text-[10px] font-bold shadow-sm ${style.color} ${style.text}`}>
                         {style.short}
                       </span>
                     );
                   } else if (holiday) {
                     cellContent = (
-                      <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${BANK_HOLIDAY_STYLE.color} ${BANK_HOLIDAY_STYLE.text}`}>
+                      <span className={`inline-flex h-6 w-6 items-center justify-center rounded-lg text-[10px] font-bold shadow-sm ${BANK_HOLIDAY_STYLE.color} ${BANK_HOLIDAY_STYLE.text}`}>
                         {BANK_HOLIDAY_STYLE.short}
                       </span>
                     );
                   }
 
-                  if (weekend && !entry) bgClass = "bg-slate-50";
+                  if (weekend && !entry) bgClass = "bg-slate-50/60";
 
                   const canEdit = isAdmin || member.id === currentMemberId;
 
                   return (
                     <td
                       key={dateStr}
-                      className={`px-1 py-1 text-center ${bgClass} ${canEdit ? "cursor-pointer hover:bg-blue-50" : ""}`}
+                      className={`px-0.5 py-1 text-center ${bgClass} ${canEdit ? "cursor-pointer transition hover:bg-indigo-100/40" : ""}`}
                       onClick={() =>
                         canEdit && setModal({
                           memberId: member.id,
@@ -143,20 +168,20 @@ export function TeamCalendar({ members, entries, bankHolidays, year, month, curr
         </table>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-3 text-xs text-slate-600">
+      <div className="mt-4 flex flex-wrap gap-3 text-xs">
         {Object.entries(DAY_TYPES).map(([key, style]) => (
-          <div key={key} className="flex items-center gap-1.5">
-            <span className={`inline-flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold ${style.color} ${style.text}`}>
+          <div key={key} className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 ${style.soft}`}>
+            <span className={`inline-flex h-4 w-4 items-center justify-center rounded-md text-[9px] font-bold ${style.color} ${style.text}`}>
               {style.short}
             </span>
-            {style.label}
+            <span className="font-medium">{style.label}</span>
           </div>
         ))}
-        <div className="flex items-center gap-1.5">
-          <span className={`inline-flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold ${BANK_HOLIDAY_STYLE.color} ${BANK_HOLIDAY_STYLE.text}`}>
+        <div className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 ${BANK_HOLIDAY_STYLE.soft}`}>
+          <span className={`inline-flex h-4 w-4 items-center justify-center rounded-md text-[9px] font-bold ${BANK_HOLIDAY_STYLE.color} ${BANK_HOLIDAY_STYLE.text}`}>
             {BANK_HOLIDAY_STYLE.short}
           </span>
-          Festivo
+          <span className="font-medium">Festivo</span>
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getTeamMembers, getMonthEntries, getBankHolidays, getCurrentMember } from "@/lib/queries";
+import { getTeamMembers, getMonthEntries, getBankHolidays, getCurrentMember, getMemberBalances } from "@/lib/queries";
 import { TeamCalendar } from "@/components/calendar/team-calendar";
 import { startOfMonth, endOfMonth, format } from "date-fns";
 
@@ -19,12 +19,18 @@ export default async function CalendarioPage({
   const startStr = format(monthStart, "yyyy-MM-dd");
   const endStr = format(monthEnd, "yyyy-MM-dd");
 
-  const [members, entries, bankHolidays, currentMember] = await Promise.all([
+  const balanceYear = monthStart.getFullYear();
+
+  const [members, entries, bankHolidays, currentMember, balances] = await Promise.all([
     getTeamMembers(supabase),
     getMonthEntries(supabase, startStr, endStr),
     getBankHolidays(supabase, startStr, endStr),
     getCurrentMember(supabase),
+    getMemberBalances(supabase, balanceYear),
   ]);
+
+  const remainingMap: Record<string, number> = {};
+  balances.forEach((b) => { remainingMap[b.member_id] = b.remaining; });
 
   return (
     <TeamCalendar
@@ -35,6 +41,7 @@ export default async function CalendarioPage({
       month={month}
       currentMemberId={currentMember?.id}
       isAdmin={currentMember?.is_admin}
+      remainingByMember={remainingMap}
     />
   );
 }

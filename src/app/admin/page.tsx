@@ -27,28 +27,30 @@ export default async function AdminPage() {
       </div>
 
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-slate-800">
+        <h2 className="mb-4 text-lg font-bold text-slate-800">
           Días compensatorios ganados ({year})
         </h2>
-        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
-                <th className="px-4 py-2 text-left font-semibold text-slate-700">Nombre</th>
-                <th className="px-4 py-2 text-center font-semibold text-slate-700">Comp. ganados</th>
-                <th className="px-4 py-2 text-center font-semibold text-slate-700">Actualizar</th>
+              <tr className="border-b border-slate-200 bg-slate-50/80">
+                <th className="px-4 py-2.5 text-left font-bold text-slate-700">Nombre</th>
+                <th className="px-4 py-2.5 text-center font-bold text-slate-700">Comp. ganados</th>
+                <th className="px-4 py-2.5 text-center font-bold text-slate-700">Actualizar</th>
               </tr>
             </thead>
             <tbody>
               {members.map((m) => {
                 const balance = balanceMap.get(m.id);
                 return (
-                  <tr key={m.id} className="border-b border-slate-100">
-                    <td className="px-4 py-2 font-medium text-slate-800">{m.name}</td>
-                    <td className="px-4 py-2 text-center text-slate-600">
-                      {balance?.compensatory_earned ?? 0}
+                  <tr key={m.id} className="border-b border-slate-100/80 transition hover:bg-indigo-50/30">
+                    <td className="px-4 py-2.5 font-medium text-slate-800">{m.name}</td>
+                    <td className="px-4 py-2.5 text-center">
+                      <span className="inline-flex min-w-[2rem] items-center justify-center rounded-full bg-amber-100 px-2 py-0.5 text-sm font-bold text-amber-700">
+                        {balance?.compensatory_earned ?? 0}
+                      </span>
                     </td>
-                    <td className="px-4 py-2 text-center">
+                    <td className="px-4 py-2.5 text-center">
                       <CompensatoryForm
                         memberId={m.id}
                         year={year}
@@ -64,8 +66,8 @@ export default async function AdminPage() {
       </section>
 
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-slate-800">Arrastre de año</h2>
-        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="mb-4 text-lg font-bold text-slate-800">Arrastre de año</h2>
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
           <p className="mb-4 text-sm text-slate-600">
             Calcula los días restantes de cada persona en un año y los arrastra como
             acumulado al año siguiente. Esta acción es idempotente (se puede ejecutar varias veces).

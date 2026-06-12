@@ -13,7 +13,7 @@ export function DeleteEntryButton({ entryId }: { entryId: string }) {
         startTransition(() => deleteDayEntryAction(entryId));
       }}
       disabled={isPending}
-      className="text-xs text-red-600 hover:text-red-800 disabled:opacity-50"
+      className="rounded-lg px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 hover:text-red-800 disabled:opacity-50"
     >
       {isPending ? "..." : "Eliminar"}
     </button>

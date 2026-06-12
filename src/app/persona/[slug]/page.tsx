@@ -41,41 +41,53 @@ export default async function PersonaPage({
     .lte("date", `${year}-12-31`)
     .order("date");
 
+  const cards = [
+    { label: "Total disponible", value: balance?.total_available ?? 0, icon: "📋", gradient: "from-slate-50 to-slate-100/50", accent: "text-slate-900" },
+    { label: "Días usados", value: balance?.days_used ?? 0, icon: "🏖️", gradient: "from-blue-50 to-blue-100/50", accent: "text-blue-600" },
+    {
+      label: "Restante",
+      value: balance?.remaining ?? 0,
+      icon: "✨",
+      gradient: (balance?.remaining ?? 0) > 5 ? "from-emerald-50 to-emerald-100/50" : (balance?.remaining ?? 0) > 0 ? "from-amber-50 to-amber-100/50" : "from-red-50 to-red-100/50",
+      accent: (balance?.remaining ?? 0) > 5 ? "text-emerald-600" : (balance?.remaining ?? 0) > 0 ? "text-amber-600" : "text-red-600",
+    },
+  ];
+
   return (
     <div>
-      <h1 className="text-2xl font-bold text-slate-900">{member.name}</h1>
-
-      {balance ? (
-        <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {[
-            { label: "Total disponible", value: balance.total_available, color: "text-slate-900" },
-            { label: "Vacaciones usadas", value: balance.vacation_used, color: "text-blue-600" },
-            { label: "Comp. usados", value: balance.compensatory_used, color: "text-amber-600" },
-            {
-              label: "Restante",
-              value: balance.remaining,
-              color: balance.remaining > 5 ? "text-green-600" : balance.remaining > 0 ? "text-amber-600" : "text-red-600",
-            },
-          ].map((card) => (
-            <div key={card.label} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="text-sm text-slate-500">{card.label}</div>
-              <div className={`mt-1 text-2xl font-bold ${card.color}`}>{card.value}</div>
-            </div>
-          ))}
+      <div className="flex items-center gap-3">
+        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 text-xl font-bold text-white shadow-lg shadow-indigo-500/20">
+          {member.name.charAt(0)}
+        </span>
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">{member.name}</h1>
+          <p className="text-sm text-slate-500">Balance {year}</p>
         </div>
-      ) : (
-        <p className="mt-4 text-sm text-slate-500">No hay balance para {year}</p>
-      )}
+      </div>
 
-      <div className="mt-6 flex items-center gap-4">
-        <h2 className="text-lg font-semibold text-slate-800">Días registrados en {year}</h2>
+      <div className="mt-5 grid grid-cols-3 gap-3">
+        {cards.map((card) => (
+          <div key={card.label} className={`rounded-2xl border border-slate-200/80 bg-gradient-to-br ${card.gradient} p-4 shadow-sm`}>
+            <div className="flex items-center gap-1.5 text-sm text-slate-500">
+              <span>{card.icon}</span>
+              {card.label}
+            </div>
+            <div className={`mt-1 text-3xl font-bold ${card.accent}`}>{card.value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-8 flex items-center gap-4">
+        <h2 className="text-lg font-bold text-slate-800">Días registrados en {year}</h2>
         <div className="flex gap-1">
           {[2024, 2025, 2026, 2027].map((y) => (
             <a
               key={y}
               href={`/persona/${slug}?year=${y}`}
-              className={`rounded-md px-2 py-1 text-xs font-medium ${
-                y === year ? "bg-blue-600 text-white" : "text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
+              className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
+                y === year
+                  ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-sm"
+                  : "text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
               }`}
             >
               {y}
@@ -85,31 +97,31 @@ export default async function PersonaPage({
       </div>
 
       {entries && entries.length > 0 ? (
-        <div className="mt-4 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
-                <th className="px-4 py-2 text-left font-semibold text-slate-700">Fecha</th>
-                <th className="px-4 py-2 text-left font-semibold text-slate-700">Tipo</th>
-                <th className="px-4 py-2 text-left font-semibold text-slate-700">Nota</th>
-                <th className="px-4 py-2 text-right font-semibold text-slate-700"></th>
+              <tr className="border-b border-slate-200 bg-slate-50/80">
+                <th className="px-4 py-2.5 text-left font-bold text-slate-700">Fecha</th>
+                <th className="px-4 py-2.5 text-left font-bold text-slate-700">Tipo</th>
+                <th className="px-4 py-2.5 text-left font-bold text-slate-700">Nota</th>
+                <th className="px-4 py-2.5 text-right font-bold text-slate-700"></th>
               </tr>
             </thead>
             <tbody>
               {entries.map((entry) => {
                 const style = DAY_TYPES[entry.day_type as DayTypeKey];
                 return (
-                  <tr key={entry.id} className="border-b border-slate-100">
-                    <td className="px-4 py-2 capitalize text-slate-800">
+                  <tr key={entry.id} className="border-b border-slate-100/80 transition hover:bg-indigo-50/30">
+                    <td className="px-4 py-2.5 capitalize text-slate-800 font-medium">
                       {format(parseISO(entry.date), "EEEE d MMM", { locale: es })}
                     </td>
-                    <td className="px-4 py-2">
-                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${style.color} ${style.text}`}>
+                    <td className="px-4 py-2.5">
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${style.soft}`}>
                         {style.label}
                       </span>
                     </td>
-                    <td className="px-4 py-2 text-slate-500">{entry.note || "—"}</td>
-                    <td className="px-4 py-2 text-right">
+                    <td className="px-4 py-2.5 text-slate-500">{entry.note || "—"}</td>
+                    <td className="px-4 py-2.5 text-right">
                       <DeleteEntryButton entryId={entry.id} />
                     </td>
                   </tr>
@@ -119,7 +131,9 @@ export default async function PersonaPage({
           </table>
         </div>
       ) : (
-        <p className="mt-4 text-sm text-slate-500">No hay días registrados en {year}</p>
+        <p className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-white/50 p-8 text-center text-sm text-slate-500">
+          No hay días registrados en {year}
+        </p>
       )}
     </div>
   );

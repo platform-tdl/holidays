@@ -26,12 +26,12 @@ export function CompensatoryForm({ memberId, year, currentValue }: Props) {
         min="0"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        className="w-16 rounded-md border border-slate-300 px-2 py-1 text-center text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+        className="w-16 rounded-xl border border-slate-200 bg-slate-50 px-2 py-1.5 text-center text-sm font-medium transition focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:outline-none"
       />
       <button
         onClick={handleSave}
         disabled={isPending || parseInt(value) === currentValue}
-        className="rounded-md bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-30"
+        className="rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:shadow-md disabled:opacity-30"
       >
         {isPending ? "..." : "Guardar"}
       </button>

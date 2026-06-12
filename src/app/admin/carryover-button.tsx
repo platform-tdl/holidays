@@ -25,7 +25,7 @@ export function CarryoverButton({ fromYear }: { fromYear: number }) {
       <button
         onClick={handleClick}
         disabled={isPending}
-        className="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+        className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:shadow-md disabled:opacity-50"
       >
         {isPending ? "Procesando..." : `${fromYear} → ${fromYear + 1}`}
       </button>

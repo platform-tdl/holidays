@@ -21,9 +21,9 @@ export default async function BalancePage({
             <a
               key={y}
               href={`/balance?year=${y}`}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium ${
+              className={`rounded-xl px-3 py-1.5 text-sm font-semibold transition ${
                 y === year
-                  ? "bg-blue-600 text-white"
+                  ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-sm"
                   : "text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
               }`}
             >

@@ -22,7 +22,7 @@ export default function RootLayout({
     <html lang="es" className={`${geistSans.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
         <Nav />
-        <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-6">
+        <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8">
           {children}
         </main>
       </body>

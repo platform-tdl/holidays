@@ -42,7 +42,6 @@ export interface MemberBalance {
   carried_over_days: number;
   compensatory_earned: number;
   total_available: number;
-  vacation_used: number;
-  compensatory_used: number;
+  days_used: number;
   remaining: number;
 }

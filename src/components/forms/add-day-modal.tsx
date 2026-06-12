@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { DayEntry } from "@/lib/types";
-import { DAY_TYPE_OPTIONS, DayTypeKey } from "@/lib/constants";
+import { DAY_TYPE_OPTIONS, DAY_TYPES, DayTypeKey } from "@/lib/constants";
 import { addDayEntryAction, deleteDayEntryAction } from "@/app/actions";
 
 interface Props {
@@ -48,40 +48,52 @@ export function AddDayModal({ memberId, memberName, date, existingEntry, onClose
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
-        <h3 className="text-lg font-semibold text-slate-900">{memberName}</h3>
-        <p className="mt-1 text-sm capitalize text-slate-500">{formattedDate}</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl shadow-slate-900/10" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-lg font-bold text-indigo-600">
+            {memberName.charAt(0)}
+          </span>
+          <div>
+            <h3 className="text-lg font-bold text-slate-900">{memberName}</h3>
+            <p className="text-sm capitalize text-slate-500">{formattedDate}</p>
+          </div>
+        </div>
 
-        {error && <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        {error && <p className="mt-4 rounded-xl bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700">{error}</p>}
 
         {existingEntry ? (
-          <div className="mt-6">
-            <p className="text-sm text-slate-600">
-              Este día tiene registrado: <strong>{DAY_TYPE_OPTIONS.find(o => o.value === existingEntry.day_type)?.label}</strong>
-            </p>
-            {existingEntry.note && <p className="mt-1 text-sm text-slate-500">Nota: {existingEntry.note}</p>}
-            <div className="mt-6 flex gap-3">
+          <div className="mt-5">
+            <div className="rounded-xl bg-slate-50 p-4">
+              <p className="text-sm text-slate-600">
+                Día registrado como{" "}
+                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold ${DAY_TYPES[existingEntry.day_type as DayTypeKey].soft}`}>
+                  {DAY_TYPE_OPTIONS.find(o => o.value === existingEntry.day_type)?.label}
+                </span>
+              </p>
+              {existingEntry.note && <p className="mt-2 text-sm text-slate-500">Nota: {existingEntry.note}</p>}
+            </div>
+            <div className="mt-5 flex gap-3">
               <button
                 onClick={handleDelete}
                 disabled={isPending}
-                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                className="rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 hover:shadow-md disabled:opacity-50"
               >
                 {isPending ? "Borrando..." : "Eliminar"}
               </button>
-              <button onClick={onClose} className="rounded-md px-4 py-2 text-sm font-medium text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50">
+              <button onClick={onClose} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-slate-600 ring-1 ring-slate-200 transition hover:bg-slate-50 hover:shadow-sm">
                 Cancelar
               </button>
             </div>
           </div>
         ) : (
-          <div className="mt-4 space-y-4">
+          <div className="mt-5 space-y-4">
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Tipo</label>
+              <label className="mb-1.5 block text-sm font-semibold text-slate-700">Tipo</label>
               <select
                 value={dayType}
                 onChange={(e) => setDayType(e.target.value as DayTypeKey)}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 transition focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:outline-none"
               >
                 {DAY_TYPE_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -89,24 +101,24 @@ export function AddDayModal({ memberId, memberName, date, existingEntry, onClose
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Nota (opcional)</label>
+              <label className="mb-1.5 block text-sm font-semibold text-slate-700">Nota (opcional)</label>
               <input
                 type="text"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Motivo, comentario..."
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm transition focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:outline-none"
               />
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3 pt-1">
               <button
                 onClick={handleAdd}
                 disabled={isPending}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                className="rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:shadow-md disabled:opacity-50"
               >
                 {isPending ? "Guardando..." : "Guardar"}
               </button>
-              <button onClick={onClose} className="rounded-md px-4 py-2 text-sm font-medium text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50">
+              <button onClick={onClose} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-slate-600 ring-1 ring-slate-200 transition hover:bg-slate-50">
                 Cancelar
               </button>
             </div>
