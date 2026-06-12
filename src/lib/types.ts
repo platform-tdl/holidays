@@ -33,6 +33,17 @@ export interface BankHoliday {
   name: string;
 }
 
+export interface ActivityLogEntry {
+  id: string;
+  created_at: string;
+  actor_id: string;
+  member_id: string;
+  action: string;
+  details: Record<string, unknown>;
+  actor_name?: string;
+  member_name?: string;
+}
+
 export interface MemberBalance {
   member_id: string;
   name: string;

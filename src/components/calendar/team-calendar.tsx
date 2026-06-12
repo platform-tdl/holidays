@@ -6,6 +6,7 @@ import { TeamMember, DayEntry, BankHoliday } from "@/lib/types";
 import { getMonthDays, isWeekend, formatMonthYear, toDateString, getDayName } from "@/lib/dates";
 import { DAY_TYPES, BANK_HOLIDAY_STYLE, DayTypeKey } from "@/lib/constants";
 import { AddDayModal } from "@/components/forms/add-day-modal";
+import { DayBadge } from "@/components/calendar/day-badge";
 import { useRouter } from "next/navigation";
 
 interface Props {
@@ -17,6 +18,7 @@ interface Props {
   currentMemberId?: string;
   isAdmin?: boolean;
   remainingByMember?: Record<string, number>;
+  allBankHolidayDates?: string[];
 }
 
 const MEMBER_COLORS = [
@@ -33,7 +35,7 @@ const MEMBER_COLORS = [
   "bg-fuchsia-100 text-fuchsia-700",
 ];
 
-export function TeamCalendar({ members, entries, bankHolidays, year, month, currentMemberId, isAdmin, remainingByMember = {} }: Props) {
+export function TeamCalendar({ members, entries, bankHolidays, allBankHolidayDates = [], year, month, currentMemberId, isAdmin, remainingByMember = {} }: Props) {
   const router = useRouter();
   const [modal, setModal] = useState<{
     memberId: string;
@@ -73,6 +75,9 @@ export function TeamCalendar({ members, entries, bankHolidays, year, month, curr
         <button onClick={handleNext} className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 hover:shadow-md">
           Siguiente →
         </button>
+        <a href={`/calendario/anual?year=${year}`} className="ml-auto rounded-xl px-3 py-1.5 text-sm font-semibold text-indigo-600 ring-1 ring-indigo-200 transition hover:bg-indigo-50">
+          Vista anual
+        </a>
       </div>
 
       <div className="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white shadow-sm">
@@ -90,7 +95,7 @@ export function TeamCalendar({ members, entries, bankHolidays, year, month, curr
                   <th
                     key={dateStr}
                     className={`min-w-[34px] px-1 py-1.5 text-center font-medium ${
-                      holiday ? "bg-rose-50 text-rose-600" : weekend ? "bg-slate-100/60 text-slate-400" : "text-slate-500"
+                      holiday ? "bg-emerald-50 text-emerald-600" : weekend ? "bg-slate-100/60 text-slate-400" : "text-slate-500"
                     }`}
                     title={holiday?.name}
                   >
@@ -103,8 +108,8 @@ export function TeamCalendar({ members, entries, bankHolidays, year, month, curr
           </thead>
           <tbody>
             {members.map((member, i) => (
-              <tr key={member.id} className="border-b border-slate-100/80 transition hover:bg-indigo-50/30">
-                <td className="sticky left-0 z-10 bg-white px-3 py-2 whitespace-nowrap">
+              <tr key={member.id} className={`border-b border-slate-100/80 transition hover:bg-indigo-50/30 ${member.id === currentMemberId ? "bg-indigo-100/60" : ""}`}>
+                <td className={`sticky left-0 z-10 px-3 py-2 whitespace-nowrap ${member.id === currentMemberId ? "bg-indigo-100/60" : "bg-white"}`}>
                   <div className="group/member relative flex cursor-default items-center gap-2">
                     <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${MEMBER_COLORS[i % MEMBER_COLORS.length]}`}>
                       {member.name.charAt(0)}
@@ -127,12 +132,7 @@ export function TeamCalendar({ members, entries, bankHolidays, year, month, curr
                   let bgClass = "";
 
                   if (entry) {
-                    const style = DAY_TYPES[entry.day_type as DayTypeKey];
-                    cellContent = (
-                      <span className={`inline-flex h-6 w-6 items-center justify-center rounded-lg text-[10px] font-bold shadow-sm ${style.color} ${style.text}`}>
-                        {style.short}
-                      </span>
-                    );
+                    cellContent = <DayBadge dayType={entry.day_type as DayTypeKey} />;
                   } else if (holiday) {
                     cellContent = (
                       <span className={`inline-flex h-6 w-6 items-center justify-center rounded-lg text-[10px] font-bold shadow-sm ${BANK_HOLIDAY_STYLE.color} ${BANK_HOLIDAY_STYLE.text}`}>
@@ -171,9 +171,7 @@ export function TeamCalendar({ members, entries, bankHolidays, year, month, curr
       <div className="mt-4 flex flex-wrap gap-3 text-xs">
         {Object.entries(DAY_TYPES).map(([key, style]) => (
           <div key={key} className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 ${style.soft}`}>
-            <span className={`inline-flex h-4 w-4 items-center justify-center rounded-md text-[9px] font-bold ${style.color} ${style.text}`}>
-              {style.short}
-            </span>
+            <DayBadge dayType={key as DayTypeKey} size="sm" />
             <span className="font-medium">{style.label}</span>
           </div>
         ))}
@@ -191,6 +189,7 @@ export function TeamCalendar({ members, entries, bankHolidays, year, month, curr
           memberName={modal.memberName}
           date={modal.date}
           existingEntry={modal.existingEntry}
+          bankHolidayDates={allBankHolidayDates}
           onClose={() => setModal(null)}
         />
       )}

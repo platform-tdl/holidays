@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { getMemberBalances } from "@/lib/queries";
+import { getMemberBalances, getCurrentMember, getTeamMembers } from "@/lib/queries";
 import { BalanceTable } from "@/components/balance/balance-table";
+import { EXCLUDED_SLUGS } from "@/lib/constants";
 
 export default async function BalancePage({
   searchParams,
@@ -10,7 +11,18 @@ export default async function BalancePage({
   const params = await searchParams;
   const year = params.year ? parseInt(params.year) : new Date().getFullYear();
   const supabase = await createClient();
-  const balances = await getMemberBalances(supabase, year);
+  const [balances, currentMember, members] = await Promise.all([
+    getMemberBalances(supabase, year),
+    getCurrentMember(supabase),
+    getTeamMembers(supabase),
+  ]);
+
+  const currentSlug = members.find((m) => m.id === currentMember?.id)?.slug;
+  const isExcluded = currentSlug ? EXCLUDED_SLUGS.has(currentSlug) : false;
+
+  const filtered = isExcluded
+    ? balances.filter((b) => b.member_id === currentMember?.id)
+    : balances.filter((b) => !EXCLUDED_SLUGS.has(b.slug));
 
   return (
     <div>
@@ -32,7 +44,7 @@ export default async function BalancePage({
           ))}
         </div>
       </div>
-      <BalanceTable balances={balances} year={year} />
+      <BalanceTable balances={filtered} year={year} />
     </div>
   );
 }

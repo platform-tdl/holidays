@@ -1,9 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentMember } from "@/lib/queries";
 import { notFound } from "next/navigation";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { DAY_TYPES, DayTypeKey } from "@/lib/constants";
 import { DeleteEntryButton } from "./delete-button";
+import { ChangePasswordForm } from "@/components/forms/change-password-form";
 
 export default async function PersonaPage({
   params,
@@ -25,6 +27,9 @@ export default async function PersonaPage({
     .single();
 
   if (!member) notFound();
+
+  const currentMember = await getCurrentMember(supabase);
+  const isOwnProfile = currentMember?.id === member.id;
 
   const { data: balance } = await supabase
     .from("member_balances")
@@ -134,6 +139,14 @@ export default async function PersonaPage({
         <p className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-white/50 p-8 text-center text-sm text-slate-500">
           No hay días registrados en {year}
         </p>
+      )}
+      {isOwnProfile && (
+        <div className="mt-8">
+          <h2 className="mb-4 text-lg font-bold text-slate-800">Cambiar contraseña</h2>
+          <div className="max-w-sm rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+            <ChangePasswordForm />
+          </div>
+        </div>
       )}
     </div>
   );

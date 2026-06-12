@@ -113,6 +113,27 @@ export async function getCurrentMember(supabase: SupabaseClient) {
   return data;
 }
 
+export async function getActivityLog(
+  supabase: SupabaseClient,
+  limit = 50
+) {
+  const { data, error } = await supabase
+    .from("activity_log")
+    .select("*, actor:team_members!activity_log_actor_id_fkey(name), member:team_members!activity_log_member_id_fkey(name)")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (data ?? []).map((row: any) => ({
+    id: row.id as string,
+    created_at: row.created_at as string,
+    action: row.action as string,
+    actor_name: row.actor?.name ?? "?",
+    member_name: row.member?.name ?? "?",
+    details: row.details as Record<string, unknown>,
+  }));
+}
+
 export async function getMemberEntries(
   supabase: SupabaseClient,
   memberId: string,

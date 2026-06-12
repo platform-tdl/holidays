@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getTeamMembers, getMonthEntries, getBankHolidays, getCurrentMember, getMemberBalances } from "@/lib/queries";
 import { TeamCalendar } from "@/components/calendar/team-calendar";
 import { startOfMonth, endOfMonth, format } from "date-fns";
+import { EXCLUDED_SLUGS } from "@/lib/constants";
 
 export default async function CalendarioPage({
   searchParams,
@@ -21,22 +22,36 @@ export default async function CalendarioPage({
 
   const balanceYear = monthStart.getFullYear();
 
-  const [members, entries, bankHolidays, currentMember, balances] = await Promise.all([
+  const [members, entries, bankHolidays, yearHolidays, currentMember, balances] = await Promise.all([
     getTeamMembers(supabase),
     getMonthEntries(supabase, startStr, endStr),
     getBankHolidays(supabase, startStr, endStr),
+    getBankHolidays(supabase, `${year}-01-01`, `${year}-12-31`),
     getCurrentMember(supabase),
     getMemberBalances(supabase, balanceYear),
   ]);
 
+  const currentSlug = members.find((m) => m.id === currentMember?.id)?.slug;
+  const isExcluded = currentSlug ? EXCLUDED_SLUGS.has(currentSlug) : false;
+
+  const slugById = new Map(members.map((m) => [m.id, m.slug]));
   const remainingMap: Record<string, number> = {};
-  balances.forEach((b) => { remainingMap[b.member_id] = b.remaining; });
+  if (isExcluded) {
+    const own = balances.find((b) => b.member_id === currentMember?.id);
+    if (own) remainingMap[own.member_id] = own.remaining;
+  } else {
+    balances.forEach((b) => {
+      const slug = slugById.get(b.member_id);
+      if (!slug || !EXCLUDED_SLUGS.has(slug)) remainingMap[b.member_id] = b.remaining;
+    });
+  }
 
   return (
     <TeamCalendar
       members={members}
       entries={entries}
       bankHolidays={bankHolidays}
+      allBankHolidayDates={yearHolidays.map((h) => h.date)}
       year={year}
       month={month}
       currentMemberId={currentMember?.id}

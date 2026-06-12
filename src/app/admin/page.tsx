@@ -1,20 +1,33 @@
 import { createClient } from "@/lib/supabase/server";
-import { getTeamMembers, getMemberBalances, getCurrentMember } from "@/lib/queries";
+import { getTeamMembers, getMemberBalances, getCurrentMember, getActivityLog, getBankHolidays } from "@/lib/queries";
 import { CompensatoryForm } from "./compensatory-form";
 import { CarryoverButton } from "./carryover-button";
+import { ActivityLog } from "./activity-log";
+import { BankHolidaysAdmin } from "./bank-holidays-admin";
 import { redirect } from "next/navigation";
+import { EXCLUDED_SLUGS } from "@/lib/constants";
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ holidayYear?: string }>;
+}) {
+  const params = await searchParams;
   const supabase = await createClient();
   const currentMember = await getCurrentMember(supabase);
   if (!currentMember?.is_admin) redirect("/calendario");
 
   const year = new Date().getFullYear();
-  const [members, balances] = await Promise.all([
+  const holidayYear = params.holidayYear ? parseInt(params.holidayYear) : year;
+
+  const [members, balances, activityLog, bankHolidays] = await Promise.all([
     getTeamMembers(supabase),
     getMemberBalances(supabase, year),
+    getActivityLog(supabase, 100),
+    getBankHolidays(supabase, `${holidayYear}-01-01`, `${holidayYear}-12-31`),
   ]);
 
+  const filteredMembers = members.filter((m) => !EXCLUDED_SLUGS.has(m.slug));
   const balanceMap = new Map(balances.map((b) => [b.member_id, b]));
 
   return (
@@ -22,7 +35,7 @@ export default async function AdminPage() {
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Administración</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Gestión de días compensatorios y arrastre de año
+          Gestión de días compensatorios, festivos, arrastre de año y registro de actividad
         </p>
       </div>
 
@@ -40,7 +53,7 @@ export default async function AdminPage() {
               </tr>
             </thead>
             <tbody>
-              {members.map((m) => {
+              {filteredMembers.map((m) => {
                 const balance = balanceMap.get(m.id);
                 return (
                   <tr key={m.id} className="border-b border-slate-100/80 transition hover:bg-indigo-50/30">
@@ -66,6 +79,10 @@ export default async function AdminPage() {
       </section>
 
       <section>
+        <BankHolidaysAdmin holidays={bankHolidays} year={holidayYear} />
+      </section>
+
+      <section>
         <h2 className="mb-4 text-lg font-bold text-slate-800">Arrastre de año</h2>
         <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
           <p className="mb-4 text-sm text-slate-600">
@@ -77,6 +94,11 @@ export default async function AdminPage() {
             <CarryoverButton fromYear={2026} />
           </div>
         </div>
+      </section>
+
+      <section>
+        <h2 className="mb-4 text-lg font-bold text-slate-800">Registro de actividad</h2>
+        <ActivityLog entries={activityLog} />
       </section>
     </div>
   );

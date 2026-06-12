@@ -1,34 +1,51 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, eachDayOfInterval, isWeekend } from "date-fns";
 import { es } from "date-fns/locale";
 import { DayEntry } from "@/lib/types";
 import { DAY_TYPE_OPTIONS, DAY_TYPES, DayTypeKey } from "@/lib/constants";
-import { addDayEntryAction, deleteDayEntryAction } from "@/app/actions";
+import { addDayEntryAction, addDayRangeAction, deleteDayEntryAction } from "@/app/actions";
 
 interface Props {
   memberId: string;
   memberName: string;
   date: string;
   existingEntry?: DayEntry;
+  bankHolidayDates?: string[];
   onClose: () => void;
 }
 
-export function AddDayModal({ memberId, memberName, date, existingEntry, onClose }: Props) {
+function countWorkdays(start: string, end: string, holidays: Set<string>): number {
+  if (!start || !end || end < start) return 0;
+  return eachDayOfInterval({ start: parseISO(start), end: parseISO(end) })
+    .filter((d) => !isWeekend(d) && !holidays.has(format(d, "yyyy-MM-dd")))
+    .length;
+}
+
+export function AddDayModal({ memberId, memberName, date, existingEntry, bankHolidayDates = [], onClose }: Props) {
   const [dayType, setDayType] = useState<DayTypeKey>(existingEntry?.day_type ?? "vacaciones");
   const [note, setNote] = useState(existingEntry?.note ?? "");
+  const [endDate, setEndDate] = useState(date);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
 
+  const holidaySet = new Set(bankHolidayDates);
   const formattedDate = format(parseISO(date), "EEEE d 'de' MMMM yyyy", { locale: es });
+  const isRange = endDate > date;
+  const workdays = isRange ? countWorkdays(date, endDate, holidaySet) : 1;
 
   function handleAdd() {
     setError("");
     startTransition(async () => {
       try {
-        await addDayEntryAction(memberId, date, dayType, note);
-        onClose();
+        if (isRange) {
+          const count = await addDayRangeAction(memberId, date, endDate, dayType, bankHolidayDates, note);
+          onClose();
+        } else {
+          await addDayEntryAction(memberId, date, dayType, note);
+          onClose();
+        }
       } catch (e) {
         setError(e instanceof Error ? e.message : "Error al guardar");
       }
@@ -100,6 +117,32 @@ export function AddDayModal({ memberId, memberName, date, existingEntry, onClose
                 ))}
               </select>
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700">Desde</label>
+                <input
+                  type="date"
+                  value={date}
+                  disabled
+                  className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3 py-2.5 text-sm text-slate-500"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700">Hasta</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  min={date}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm transition focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:outline-none"
+                />
+              </div>
+            </div>
+            {isRange && (
+              <p className="rounded-xl bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700">
+                {workdays} día{workdays !== 1 ? "s" : ""} laborable{workdays !== 1 ? "s" : ""} (sin fines de semana ni festivos)
+              </p>
+            )}
             <div>
               <label className="mb-1.5 block text-sm font-semibold text-slate-700">Nota (opcional)</label>
               <input
@@ -116,7 +159,7 @@ export function AddDayModal({ memberId, memberName, date, existingEntry, onClose
                 disabled={isPending}
                 className="rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:shadow-md disabled:opacity-50"
               >
-                {isPending ? "Guardando..." : "Guardar"}
+                {isPending ? "Guardando..." : isRange ? `Guardar ${workdays} días` : "Guardar"}
               </button>
               <button onClick={onClose} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-slate-600 ring-1 ring-slate-200 transition hover:bg-slate-50">
                 Cancelar
